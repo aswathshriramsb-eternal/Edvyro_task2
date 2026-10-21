@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Polarity Pulse — Game Design & Playtest Pack</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Syne"', 'sans-serif'],
+            mono: ['"Fira Code"', 'monospace'],
+          },
+          colors: {
+            cyanPolar: '#00F0FF',
+            orangePolar: '#FF6B00',
+            darkBg: '#090D16',
+            cardBg: '#111827',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #090D16;
+      color: #F3F4F6;
+      background-image: 
+        radial-gradient(circle at 15% 15%, rgba(0, 240, 255, 0.06) 0%, transparent 35%),
+        radial-gradient(circle at 85% 80%, rgba(255, 107, 0, 0.06) 0%, transparent 35%);
+    }
+    .grid-backdrop {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    }
+    canvas {
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+  </style>
+</head>
+<body class="font-sans antialiased min-h-screen grid-backdrop selection:bg-cyanPolar selection:text-slate-950">
+
+  <!-- Top Navigation -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-slate-950/85 border-b border-slate-800/80">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-gradient-to-br from-cyanPolar to-orangePolar p-0.5 flex items-center justify-center shadow-lg shadow-cyanPolar/10">
+          <div class="w-full h-full bg-slate-950 rounded-[7px] flex items-center justify-center font-mono font-bold text-sm">
+            <span class="text-cyanPolar">+</span><span class="text-orangePolar">−</span>
+          </div>
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="font-display font-bold tracking-tight text-white text-base">POLARITY PULSE</span>
+            <span class="text-[11px] font-mono uppercase px-2 py-0.5 rounded bg-cyanPolar/10 text-cyanPolar border border-cyanPolar/30">Game Dev Pack</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">1 Core Action • 1 Clear Goal • 3–5 Min Session • Keyboard & Touch • 100% Original Procedural Assets</p>
+        </div>
+      </div>
+
+      <nav class="hidden md:flex items-center gap-1 text-xs font-mono">
+        <a href="#prototype" class="px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800/60 transition">01. Prototype</a>
+        <a href="#gdd" class="px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800/60 transition">02. One-Page GDD</a>
+        <a href="#sketches" class="px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800/60 transition">03. State Sketches</a>
+        <a href="#playtest" class="px-3 py-1.5 rounded-md text-slate-300 hover:text-white hover:bg-slate-800/60 transition">04. Playtest Sheet</a>
+      </nav>
+
+      <div class="flex items-center gap-2">
+        <button id="copyReadmeBtn" class="text-xs font-mono px-3 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition flex items-center gap-1.5">
+          <span>Copy Summary MD</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-14">
+
+    <!-- SECTION 1: PLAYABLE PROTOTYPE -->
+    <section id="prototype" class="scroll-mt-20">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        <!-- Left Column: Live Game Canvas -->
+        <div class="lg:col-span-7 flex flex-col items-center">
+          <div class="w-full max-w-[540px] bg-slate-900/90 border border-slate-800 rounded-2xl p-4 shadow-2xl">
+            
+            <!-- Game Top Bar -->
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-slate-800 text-xs font-mono">
+              <div class="flex items-center gap-2">
+                <span id="statusDot" class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-slate-300 font-semibold">PROTOTYPE v2.0</span>
+                <span id="onboardingModeBadge" class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">Silent Onboarding</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="pauseBtn" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Pause Game (P)">
+                  Pause (P)
+                </button>
+                <button id="restartBtn" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition" title="Restart Game (R)">
+                  Restart (R)
+                </button>
+                <button id="toggleSoundBtn" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                  🔊 SFX: ON
+                </button>
+              </div>
+            </div>
+
+            <!-- HTML5 Canvas Container -->
+            <div class="relative w-full aspect-[5/6] max-h-[580px] bg-slate-950 rounded-xl overflow-hidden border border-slate-800 shadow-inner">
+              <canvas id="gameCanvas" width="500" height="600" class="w-full h-full block cursor-pointer" aria-label="Polarity Pulse playable prototype canvas"></canvas>
+            </div>
+
+            <!-- Mobile / Quick Action Bar -->
+            <div class="mt-3 grid grid-cols-2 gap-3">
+              <button id="mobileFlipBtn" class="py-3 px-4 rounded-xl font-mono font-semibold text-sm bg-gradient-to-r from-cyanPolar/20 to-orangePolar/20 hover:from-cyanPolar/30 hover:to-orangePolar/30 text-white border border-slate-700 active:scale-[0.99] transition flex items-center justify-center gap-2">
+                <span>⚡ FLIP POLARITY</span>
+                <span class="text-xs text-slate-400">(SPACE / TAP)</span>
+              </button>
+              <button id="toggleHintModeBtn" class="py-3 px-4 rounded-xl font-mono text-xs bg-slate-800/90 hover:bg-slate-800 text-slate-300 border border-slate-700 transition flex items-center justify-center gap-2">
+                <span>🎯 Onboarding:</span>
+                <strong id="hintModeText" class="text-amber-300">Zero-Text (Silent)</strong>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Constraint Verification & Live Telemetry -->
+        <div class="lg:col-span-5 space-y-5">
+          <div class="bg-slate-900/70 border border-slate-800 rounded-2xl p-6 space-y-4">
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-cyanPolar/10 border border-cyanPolar/30 text-cyanPolar text-xs font-mono">
+              <span>Game Design & Playtest Pack</span>
+            </div>
+            <h1 class="font-display text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              Polarity Pulse
+            </h1>
+            <p class="text-slate-300 text-sm leading-relaxed">
+              A single-button magnetic arcade survival prototype. Toggle your core between <strong class="text-cyanPolar">Positive (+ Circle)</strong> and <strong class="text-orangePolar">Negative (− Hexagon)</strong> to absorb matching energy waves and survive until the <strong>1,500 PTS (3–5 min)</strong> Overdrive stabilization threshold.
+            </p>
+
+            <!-- Prototype Constraint Checklist -->
+            <div class="pt-2 border-t border-slate-800/80 space-y-2">
+              <h2 class="text-xs font-mono uppercase tracking-wider text-slate-400">Prototype Constraints Verified</h2>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div class="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800">
+                  <span class="text-cyanPolar font-mono font-bold block">1 Core Action</span>
+                  <span class="text-slate-400">Instant magnetic phase inversion.</span>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800">
+                  <span class="text-emerald-400 font-mono font-bold block">1 Clear Goal</span>
+                  <span class="text-slate-400">Reach 1,500 PTS to stabilize reactor.</span>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800">
+                  <span class="text-amber-300 font-mono font-bold block">3–5 Min Session</span>
+                  <span class="text-slate-400">Paced wave escalation + quick retry.</span>
+                </div>
+                <div class="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800">
+                  <span class="text-orangePolar font-mono font-bold block">Original Assets</span>
+                  <span class="text-slate-400">Procedural Canvas + WebAudio synth.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Playtest Telemetry Panel -->
+            <div class="p-4 rounded-xl bg-slate-950/90 border border-slate-800/90 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-mono uppercase tracking-wider text-slate-400">Live Session Telemetry</span>
+                <span id="telemetryStatus" class="text-xs font-mono text-amber-400">Awaiting Start...</span>
+              </div>
+              <div class="grid grid-cols-4 gap-2 text-center">
+                <div class="p-2 rounded-lg bg-slate-900 border border-slate-800">
+                  <div class="text-[10px] font-mono text-slate-400">1st Action</div>
+                  <div id="metricFirstFlip" class="text-sm font-mono font-bold text-white mt-0.5">--</div>
+                </div>
+                <div class="p-2 rounded-lg bg-slate-900 border border-slate-800">
+                  <div class="text-[10px] font-mono text-slate-400">Onboarding</div>
+                  <div id="metricIntroClear" class="text-sm font-mono font-bold text-white mt-0.5">0 / 2</div>
+                </div>
+                <div class="p-2 rounded-lg bg-slate-900 border border-slate-800">
+                  <div class="text-[10px] font-mono text-slate-400">Session Time</div>
+                  <div id="metricSessionTime" class="text-sm font-mono font-bold text-white mt-0.5">0:00</div>
+                </div>
+                <div class="p-2 rounded-lg bg-slate-900 border border-slate-800">
+                  <div class="text-[10px] font-mono text-slate-400">Accuracy</div>
+                  <div id="metricAccuracy" class="text-sm font-mono font-bold text-white mt-0.5">100%</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 2: ONE-PAGE GAME DESIGN DOCUMENT (GDD) -->
+    <section id="gdd" class="scroll-mt-20 space-y-6">
+      <div class="border-b border-slate-800 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+        <div>
+          <span class="text-xs font-mono uppercase tracking-widest text-cyanPolar">Requirement 01</span>
+          <h2 class="font-display text-2xl font-bold text-white mt-1">One-Page Game Design Document (GDD)</h2>
+        </div>
+        <span class="text-xs font-mono text-slate-400">License: 100% Original Procedural Geometry & WebAudio</span>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+        
+        <!-- 1. Player Fantasy & Audience -->
+        <div class="md:col-span-5 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-3">
+          <div class="text-xs font-mono text-cyanPolar uppercase">01. Player Fantasy & Audience</div>
+          <h3 class="font-display text-lg font-bold text-white">Subatomic Containment Specialist</h3>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            <strong>Player Fantasy:</strong> You control a high-voltage magnetic containment core inside an unstable reactor. Mastering the rhythm of incoming charges makes you feel like a razor-sharp reflex operator channeling chaotic plasma into pure energy.
+          </p>
+          <p class="text-sm text-slate-300 leading-relaxed">
+            <strong>Target Audience:</strong> Casual arcade and rhythm-reflex players (ages 10+) looking for an immediately readable, high-contrast 3–5 minute browser or mobile session with zero tutorial bloat.
+          </p>
+        </div>
+
+        <!-- 2. Core Loop -->
+        <div class="md:col-span-7 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div class="text-xs font-mono text-orangePolar uppercase">02. Core Loop (Action → Feedback → Consequence → Next Decision)</div>
+          <div class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+              <div class="text-xs font-mono text-cyanPolar font-bold">1. ACTION</div>
+              <p class="text-xs text-slate-300 mt-1.5">Flip magnetic polarity between <strong class="text-cyanPolar">Blue (+)</strong> and <strong class="text-orangePolar">Orange (−)</strong> using a single button.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+              <div class="text-xs font-mono text-emerald-400 font-bold">2. FEEDBACK</div>
+              <p class="text-xs text-slate-300 mt-1.5">Core morphs shape (Circle/Hexagon), emits harmonic synth chime + radial shockwave or warning buzz.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+              <div class="text-xs font-mono text-amber-300 font-bold">3. CONSEQUENCE</div>
+              <p class="text-xs text-slate-300 mt-1.5">Matches add +10×Multiplier PTS & restore shield at 8x streak; mismatches shatter 1 shield ring.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800">
+              <div class="text-xs font-mono text-orangePolar font-bold">4. NEXT DECISION</div>
+              <p class="text-xs text-slate-300 mt-1.5">Read the next descending wave's shape/color and time the next polarity flip before impact.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Game States (Win, Loss, Restart, Pause, Onboarding) -->
+        <div class="md:col-span-12 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div class="text-xs font-mono text-emerald-400 uppercase">03. Win, Loss, Restart, Pause & Onboarding States</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3 text-xs">
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <div class="font-mono font-bold text-amber-300">ONBOARDING STATE</div>
+              <p class="text-slate-300">First 2 waves are slow, deterministic single orbs (1 matching, 1 opposite with a pulsing visual ghost ring) so players learn without text.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <div class="font-mono font-bold text-emerald-400">WIN STATE (1,500 PTS)</div>
+              <p class="text-slate-300">Reached after ~3.5 minutes of sustained play. Triggers Overdrive Stabilization victory screen, accuracy report, and Freeplay option.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <div class="font-mono font-bold text-rose-400">LOSS STATE (0 SHIELDS)</div>
+              <p class="text-slate-300">Losing all 3 shield segments triggers Core Containment Breach, logging survival duration, peak streak, and failure point.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <div class="font-mono font-bold text-cyanPolar">PAUSE STATE (P / ESC)</div>
+              <p class="text-slate-300">Freezes delta-time physics and audio oscillators immediately with an overlay showing current telemetry and resume/restart actions.</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-1">
+              <div class="font-mono font-bold text-purple-400">RESTART STATE (R)</div>
+              <p class="text-slate-300">Instant zero-load state reset at any moment (or after Win/Loss) that archives the run directly into the Playtest Sheet below.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. Input Map & 5. Scope Cuts -->
+        <div class="md:col-span-7 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-3">
+          <div class="text-xs font-mono text-cyanPolar uppercase">04. Input Map (Keyboard & Touch)</div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-slate-800 text-slate-400 font-mono">
+                  <th class="py-2 pr-3">Command</th>
+                  <th class="py-2 px-3">Keyboard Input</th>
+                  <th class="py-2 pl-3">Touch / Pointer Input</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60 text-slate-200">
+                <tr>
+                  <td class="py-2.5 pr-3 font-semibold">Flip Polarity (+ / −)</td>
+                  <td class="py-2.5 px-3 font-mono text-cyanPolar">SPACE / W / Up Arrow / Enter</td>
+                  <td class="py-2.5 pl-3">Tap Canvas or "⚡ FLIP POLARITY" Button</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 pr-3 font-semibold">Pause / Resume</td>
+                  <td class="py-2.5 px-3 font-mono text-amber-300">P / Escape</td>
+                  <td class="py-2.5 pl-3">Tap "Pause (P)" Top Bar Button</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 pr-3 font-semibold">Quick Restart</td>
+                  <td class="py-2.5 px-3 font-mono text-emerald-400">R</td>
+                  <td class="py-2.5 pl-3">Tap "Restart (R)" Top Bar Button</td>
+                </tr>
+                <tr>
+                  <td class="py-2.5 pr-3 font-semibold">Mute / Unmute Synth</td>
+                  <td class="py-2.5 px-3 font-mono text-slate-400">M</td>
+                  <td class="py-2.5 pl-3">Tap "🔊 SFX" Toggle Button</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="md:col-span-5 bg-slate-900/60 border border-slate-800 rounded-2xl p-6 space-y-3">
+          <div class="text-xs font-mono text-rose-400 uppercase">05. Deliberate Scope Cuts</div>
+          <ul class="space-y-2 text-xs text-slate-300">
+            <li class="flex items-start gap-2">
+              <span class="text-rose-400 font-mono">✕</span>
+              <span><strong>No 2D Spatial Movement:</strong> Cut X/Y joystick movement so 100% of cognitive load stays on single-button timing and polarity reading.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-rose-400 font-mono">✕</span>
+              <span><strong>No Multi-Currency Upgrades or Shops:</strong> Cut meta-progression menus to keep the 3–5 minute arcade session self-contained.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-rose-400 font-mono">✕</span>
+              <span><strong>No External Image/Audio Dependencies:</strong> Cut external sprite sheets and MP3s in favor of deterministic Canvas geometry and WebAudio synthesis.</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- SECTION 3: MAIN SCREEN & FEEDBACK STATE SKETCHES -->
+    <section id="sketches" class="scroll-mt-20 space-y-6">
+      <div class="border-b border-slate-800 pb-4">
+        <span class="text-xs font-mono uppercase tracking-widest text-orangePolar">Visual Architecture</span>
+        <h2 class="font-display text-2xl font-bold text-white mt-1">Main Screen & Feedback State Sketches</h2>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Sketch 1 -->
+        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-mono font-bold text-cyanPolar">SKETCH A: MAIN SCREEN & HUD</span>
+            <span class="text-[11px] font-mono text-slate-400">Neutral Sightline</span>
+          </div>
+          <div class="bg-slate-950 rounded-xl border border-slate-800 p-3 flex items-center justify-center">
+            <svg viewBox="0 0 260 300" class="w-full max-w-[240px] h-auto font-mono">
+              <rect x="5" y="5" width="250" height="290" rx="10" fill="#090D16" stroke="#334155" stroke-width="1.5"/>
+              <rect x="16" y="16" width="85" height="26" rx="4" fill="#111827" stroke="#1E293B"/>
+              <text x="24" y="33" fill="#00F0FF" font-size="9">1,500 GOAL</text>
+              <circle cx="205" cy="29" r="5" fill="#00F0FF"/>
+              <circle cx="220" cy="29" r="5" fill="#00F0FF"/>
+              <circle cx="235" cy="29" r="5" fill="#00F0FF"/>
+              <line x1="130" y1="50" x2="130" y2="235" stroke="#1E293B" stroke-dasharray="4 4"/>
+              <circle cx="130" cy="95" r="14" fill="#00F0FF" fill-opacity="0.2" stroke="#00F0FF" stroke-width="2"/>
+              <text x="126" y="99" fill="#FFF" font-size="11" font-weight="bold">+</text>
+              <circle cx="130" cy="235" r="28" fill="none" stroke="#38BDF8" stroke-width="2" stroke-dasharray="38 10"/>
+              <circle cx="130" cy="235" r="17" fill="#00F0FF" fill-opacity="0.25" stroke="#00F0FF" stroke-width="2.5"/>
+              <text x="125" y="240" fill="#FFF" font-size="14" font-weight="bold">+</text>
+            </svg>
+          </div>
+          <p class="text-xs text-slate-400 mt-3">
+            High-contrast vertical lane keeps peripheral clutter zero. Shapes (+ Circle vs − Hexagon) guarantee colorblind readability.
+          </p>
+        </div>
+
+        <!-- Sketch 2 -->
+        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-mono font-bold text-emerald-400">SKETCH B: POSITIVE ABSORPTION</span>
+            <span class="text-[11px] font-mono text-slate-400">Match State</span>
+          </div>
+          <div class="bg-slate-950 rounded-xl border border-slate-800 p-3 flex items-center justify-center">
+            <svg viewBox="0 0 260 300" class="w-full max-w-[240px] h-auto font-mono">
+              <rect x="5" y="5" width="250" height="290" rx="10" fill="#090D16" stroke="#10B981" stroke-width="1.5"/>
+              <circle cx="130" cy="215" r="54" fill="none" stroke="#00F0FF" stroke-width="1.5" stroke-dasharray="4 4"/>
+              <circle cx="130" cy="215" r="38" fill="none" stroke="#10B981" stroke-width="2"/>
+              <circle cx="130" cy="215" r="20" fill="#00F0FF" fill-opacity="0.4" stroke="#FFF" stroke-width="2.5"/>
+              <text x="102" y="145" fill="#10B981" font-size="13" font-weight="bold">+40 PTS (4x)</text>
+              <text x="58" y="278" fill="#A7F3D0" font-size="9">Harmonic Rising Synth Chime</text>
+            </svg>
+          </div>
+          <p class="text-xs text-slate-400 mt-3">
+            Matching polarity triggers an expanding shockwave ring, particle burst, rising pentatonic chime, and shield recharge every 8 streaks.
+          </p>
+        </div>
+
+        <!-- Sketch 3 -->
+        <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-mono font-bold text-rose-400">SKETCH C: MISMATCH & BREACH</span>
+            <span class="text-[11px] font-mono text-slate-400">Damage State</span>
+          </div>
+          <div class="bg-slate-950 rounded-xl border border-slate-800 p-3 flex items-center justify-center">
+            <svg viewBox="0 0 260 300" class="w-full max-w-[240px] h-auto font-mono">
+              <rect x="5" y="5" width="250" height="290" rx="10" fill="#1F0910" stroke="#F43F5E" stroke-width="2"/>
+              <polygon points="130,192 150,204 150,226 130,238 110,226 110,204" fill="#FF6B00" fill-opacity="0.4" stroke="#F43F5E" stroke-width="2.5"/>
+              <path d="M 90 180 L 170 250 M 170 180 L 90 250" stroke="#F43F5E" stroke-width="2"/>
+              <text x="72" y="135" fill="#FDA4AF" font-size="11" font-weight="bold">SHIELD SEGMENT LOST!</text>
+              <text x="65" y="278" fill="#FECDD3" font-size="9">180ms Shake + Low Sawtooth Buzz</text>
+            </svg>
+          </div>
+          <p class="text-xs text-slate-400 mt-3">
+            Opposite polarity collision triggers 180ms directional screen-shake, crimson border flash, shield segment shatter, and multiplier reset.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 4: PLAYTEST SHEET -->
+    <section id="playtest" class="scroll-mt-20 space-y-6">
+      <div class="border-b border-slate-800 pb-4 flex flex-col sm:flex-row sm:items-end justify-between gap-2">
+        <div>
+          <span class="text-xs font-mono uppercase tracking-widest text-emerald-400">Requirement 02</span>
+          <h2 class="font-display text-2xl font-bold text-white mt-1">Structured Playtest Sheet (Zero Personal Data)</h2>
+        </div>
+        <span class="text-xs font-mono text-slate-400">Auto-captures live session metrics + structured observation log</span>
+      </div>
+
+      <!-- Structured Playtest Table -->
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="bg-slate-950/90 border-b border-slate-800 text-slate-400 font-mono uppercase">
+                <th class="py-3.5 px-4">Session ID</th>
+                <th class="py-3.5 px-4">Understood Goal?</th>
+                <th class="py-3.5 px-4">1st Action Time</th>
+                <th class="py-3.5 px-4">Failure Points</th>
+                <th class="py-3.5 px-4">Accessibility Issues</th>
+                <th class="py-3.5 px-4">Delight / Frustration Moments</th>
+                <th class="py-3.5 px-4">One Change to Retest</th>
+              </tr>
+            </thead>
+            <tbody id="playtestTableBody" class="divide-y divide-slate-800/70 text-slate-200">
+              <tr>
+                <td class="py-3.5 px-4 font-mono text-cyanPolar">PT-01 (Baseline)</td>
+                <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-mono">Yes (Silent)</span></td>
+                <td class="py-3.5 px-4 font-mono">1.42s</td>
+                <td class="py-3.5 px-4">Double-gate speed transition at 650 PTS</td>
+                <td class="py-3.5 px-4">None; shape coding (+ circle / − hex) aided contrast</td>
+                <td class="py-3.5 px-4">Delight: 8x shield restore chime. Frustration: Sudden gate arrival</td>
+                <td class="py-3.5 px-4">Add 300ms pre-spawn lane warning pulse before laser gates</td>
+              </tr>
+              <tr>
+                <td class="py-3.5 px-4 font-mono text-cyanPolar">PT-02 (Mobile Touch)</td>
+                <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-mono">Yes (Silent)</span></td>
+                <td class="py-3.5 px-4 font-mono">1.18s</td>
+                <td class="py-3.5 px-4">Rapid alternating orb pair at 1,100 PTS</td>
+                <td class="py-3.5 px-4">Thumb slightly covered lower core when tapping canvas directly</td>
+                <td class="py-3.5 px-4">Delight: Dedicated bottom flip button. Frustration: Late flip on pair</td>
+                <td class="py-3.5 px-4">Raise player core Y-position by 15px for clearer thumb clearance</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Interactive Playtest Entry Form (No PII) -->
+      <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-display text-base font-bold text-white">Log New Playtest Observation (Auto-Filled from Your Latest Run)</h3>
+          <span class="text-xs font-mono text-slate-400">Privacy Rule: Anonymous telemetry only — no names or emails</span>
+        </div>
+        <form id="playtestForm" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+          <div>
+            <label class="block font-mono text-slate-400 mb-1">Understood Goal Without Explanation?</label>
+            <select id="ptGoal" class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-slate-200">
+              <option value="Yes (Silent)">Yes — Understood via Silent Onboarding</option>
+              <option value="Yes (With Hints)">Yes — Understood with HUD Hints</option>
+              <option value="Partial">Partial — Needed 1 retry to grasp goal</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-mono text-slate-400 mb-1">First Successful Action Time</label>
+            <input id="ptFirstTime" type="text" value="1.30s" class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-slate-200 font-mono" required />
+          </div>
+          <div>
+            <label class="block font-mono text-slate-400 mb-1">Observed Failure Point</label>
+            <input id="ptFailure" type="text" placeholder="e.g., Wave 14 alternating hex/circle pair" class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-slate-200" required />
+          </div>
+          <div>
+            <label class="block font-mono text-slate-400 mb-1">Accessibility Issues</label>
+            <input id="ptAccess" type="text" placeholder="e.g., Keyboard & touch responsive, high contrast verified" class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-slate-200" required />
+          </div>
+          <div>
+            <label class="block font-mono text-slate-400 mb-1">Delight / Frustration Moment</label>
+            <input id="ptDelight" type="text" placeholder="e.g., Delight on 4x chord progression" class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-slate-200" required />
+          </div>
+          <div>
+            <label class="block font-mono text-slate-400 mb-1">One Change to Retest</label>
+            <div class="flex gap-2">
+              <input id="ptChange" type="text" placeholder="e.g., Slightly widen gap on Wave 15 gates" class="w-full rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-slate-200" required />
+              <button type="submit" class="px-4 py-2 rounded-lg bg-cyanPolar text-slate-950 font-mono font-bold hover:bg-cyanPolar/90 transition shrink-0">
+                + Log
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification -->
+  <div id="toast" class="fixed bottom-5 right-5 z-50 hidden bg-slate-900 border border-cyanPolar/50 text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-mono flex items-center gap-2">
+    <span class="text-cyanPolar">✔</span>
+    <span id="toastMsg">Copied to clipboard!</span>
+  </div>
+
+  <!-- GAME ENGINE & TELEMETRY SCRIPT -->
+  <script>
+    (() => {
+      const canvas = document.getElementById('gameCanvas');
+      const ctx = canvas.getContext('2d');
+
+      // UI Elements
+      const toggleSoundBtn = document.getElementById('toggleSoundBtn');
+      const pauseBtn = document.getElementById('pauseBtn');
+      const restartBtn = document.getElementById('restartBtn');
+      const mobileFlipBtn = document.getElementById('mobileFlipBtn');
+      const toggleHintModeBtn = document.getElementById('toggleHintModeBtn');
+      const hintModeText = document.getElementById('hintModeText');
+      const onboardingModeBadge = document.getElementById('onboardingModeBadge');
+
+      // Telemetry Elements
+      const telemetryStatus = document.getElementById('telemetryStatus');
+      const metricFirstFlip = document.getElementById('metricFirstFlip');
+      const metricIntroClear = document.getElementById('metricIntroClear');
+      const metricSessionTime = document.getElementById('metricSessionTime');
+      const metricAccuracy = document.getElementById('metricAccuracy');
+
+      // Playtest Form Auto-fill Elements
+      const ptFirstTime = document.getElementById('ptFirstTime');
+      const ptFailure = document.getElementById('ptFailure');
+      const playtestForm = document.getElementById('playtestForm');
+      const playtestTableBody = document.getElementById('playtestTableBody');
+
+      // Constants
+      const POLARITY_BLUE = 0;   // Positive (+) Circle
+      const POLARITY_ORANGE = 1; // Negative (-) Hexagon
+      const GOAL_SCORE = 1500;   // Tuned for a ~3-5 minute session
+      const CORE_X = 250;
+      const CORE_Y = 490;
+      const CORE_RADIUS = 26;
+
+      // WebAudio Synthesizer (100% Original Procedural Audio)
+      let audioCtx = null;
+      let soundEnabled = true;
+
+      function initAudio() {
+        if (!audioCtx) {
+          const AudioContext = window.AudioContext || window.webkitAudioContext;
+          if (AudioContext) audioCtx = new AudioContext();
+        }
+        if (audioCtx && audioCtx.state === 'suspended') {
+          audioCtx.resume();
+        }
+      }
+
+      function playSound(type, streakVal = 1) {
+        if (!soundEnabled || !audioCtx) return;
+        const now = audioCtx.currentTime;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        if (type === 'flip') {
+          osc.type = 'triangle';
+          const baseFreq = game.playerPolarity === POLARITY_BLUE ? 440 : 330;
+          osc.frequency.setValueAtTime(baseFreq, now);
+          osc.frequency.exponentialRampToValueAtTime(baseFreq * 1.35, now + 0.065);
+          gain.gain.setValueAtTime(0.11, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
+          osc.start(now);
+          osc.stop(now + 0.065);
+        } else if (type === 'absorb') {
+          osc.type = 'sine';
+          const pentatonic = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25, 783.99];
+          const noteIdx = Math.min(streakVal - 1, pentatonic.length - 1);
+          const freq = pentatonic[Math.max(0, noteIdx)];
+          osc.frequency.setValueAtTime(freq, now);
+          osc.frequency.exponentialRampToValueAtTime(freq * 1.5, now + 0.14);
+          gain.gain.setValueAtTime(0.16, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        } else if (type === 'damage') {
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(140, now);
+          osc.frequency.linearRampToValueAtTime(55, now + 0.24);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+          osc.start(now);
+          osc.stop(now + 0.25);
+        } else if (type === 'win') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.setValueAtTime(554.37, now + 0.09);
+          osc.frequency.setValueAtTime(659.25, now + 0.18);
+          osc.frequency.setValueAtTime(880, now + 0.27);
+          gain.gain.setValueAtTime(0.18, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+          osc.start(now);
+          osc.stop(now + 0.45);
+        }
+      }
+
+      // Game State Object
+      const game = {
+        state: 'START', // 'START', 'PLAYING', 'PAUSED', 'WIN', 'GAMEOVER'
+        freeplay: false,
+        silentOnboarding: true,
+        score: 0,
+        highScore: 0,
+        shields: 3,
+        streak: 0,
+        maxStreak: 0,
+        multiplier: 1,
+        playerPolarity: POLARITY_BLUE,
+        coreScale: 1,
+        hazards: [],
+        particles: [],
+        floatingTexts: [],
+        shockwaves: [],
+        spawnTimer: 0,
+        spawnInterval: 1.35,
+        elapsedTime: 0,
+        shakeTime: 0,
+        damageFlash: 0,
+        // Onboarding & Telemetry
+        waveCount: 0,
+        introCleared: 0,
+        firstFlipTime: null,
+        totalHits: 0,
+        totalAbsorbed: 0,
+        lastFailureReason: 'None (Survived)'
+      };
+
+      // Background Stars
+      const bgStars = Array.from({ length: 42 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: Math.random() * 1.5 + 0.5,
+        speed: Math.random() * 18 + 8,
+        alpha: Math.random() * 0.5 + 0.15
+      }));
+
+      function formatDuration(sec) {
+        const mins = Math.floor(sec / 60);
+        const rem = Math.floor(sec % 60);
+        return `${mins}:${rem < 10 ? '0' : ''}${rem}`;
+      }
+
+      function resetGame() {
+        game.state = 'PLAYING';
+        game.freeplay = false;
+        game.score = 0;
+        game.shields = 3;
+        game.streak = 0;
+        game.maxStreak = 0;
+        game.multiplier = 1;
+        game.playerPolarity = POLARITY_BLUE;
+        game.coreScale = 1;
+        game.hazards = [];
+        game.particles = [];
+        game.floatingTexts = [];
+        game.shockwaves = [];
+        game.spawnTimer = 0.4;
+        game.spawnInterval = 1.35;
+        game.elapsedTime = 0;
+        game.shakeTime = 0;
+        game.damageFlash = 0;
+        game.waveCount = 0;
+        game.introCleared = 0;
+        game.firstFlipTime = null;
+        game.totalHits = 0;
+        game.totalAbsorbed = 0;
+        game.lastFailureReason = 'None';
+
+        pauseBtn.textContent = 'Pause (P)';
+        telemetryStatus.textContent = 'Recording Live Run...';
+        telemetryStatus.className = 'text-xs font-mono text-cyanPolar';
+        updateTelemetryUI();
+      }
+
+      function togglePause() {
+        if (game.state === 'PLAYING') {
+          game.state = 'PAUSED';
+          pauseBtn.textContent = 'Resume (P)';
+          telemetryStatus.textContent = 'Session Paused';
+          telemetryStatus.className = 'text-xs font-mono text-amber-300';
+        } else if (game.state === 'PAUSED') {
+          game.state = 'PLAYING';
+          pauseBtn.textContent = 'Pause (P)';
+          telemetryStatus.textContent = 'Recording Live Run...';
+          telemetryStatus.className = 'text-xs font-mono text-cyanPolar';
+        }
+      }
+
+      function flipPolarity() {
+        initAudio();
+
+        if (game.state === 'START') {
+          resetGame();
+          return;
+        }
+        if (game.state === 'PAUSED') {
+          togglePause();
+          return;
+        }
+        if (game.state === 'GAMEOVER') {
+          resetGame();
+          return;
+        }
+        if (game.state === 'WIN') {
+          game.freeplay = true;
+          game.state = 'PLAYING';
+          return;
+        }
+
+        if (game.state === 'PLAYING') {
+          game.playerPolarity = game.playerPolarity === POLARITY_BLUE ? POLARITY_ORANGE : POLARITY_BLUE;
+          game.coreScale = 1.28;
+          playSound('flip');
+
+          if (game.firstFlipTime === null) {
+            game.firstFlipTime = game.elapsedTime;
+            ptFirstTime.value = game.firstFlipTime.toFixed(2) + 's';
+            updateTelemetryUI();
+          }
+
+          const col = game.playerPolarity === POLARITY_BLUE ? '#00F0FF' : '#FF6B00';
+          game.shockwaves.push({
+            x: CORE_X,
+            y: CORE_Y,
+            r: CORE_RADIUS,
+            maxR: CORE_RADIUS + 26,
+            alpha: 0.75,
+            color: col
+          });
+        }
+      }
+
+      function spawnHazard() {
+        game.waveCount++;
+
+        // Onboarding Wave 1: Matching Blue (+) Orb
+        if (game.waveCount === 1) {
+          game.hazards.push({
+            type: 'orb',
+            polarity: POLARITY_BLUE,
+            x: CORE_X,
+            y: -25,
+            r: 18,
+            speed: 145,
+            isIntro: true,
+            label: 'Intro Wave 1 (Match)'
+          });
+          return;
+        }
+
+        // Onboarding Wave 2: Opposite Orange (-) Orb with visual cue
+        if (game.waveCount === 2) {
+          game.hazards.push({
+            type: 'orb',
+            polarity: POLARITY_ORANGE,
+            x: CORE_X,
+            y: -25,
+            r: 18,
+            speed: 150,
+            isIntro: true,
+            needsFlipHint: true,
+            label: 'Intro Wave 2 (Flip Prompt)'
+          });
+          return;
+        }
+
+        // Dynamic Difficulty Progression (Tuned for 3-5 min session to 1,500 PTS)
+        const speedBoost = Math.min(130, game.score * 0.075);
+        const baseSpeed = 175 + speedBoost;
+        const polarity = Math.random() < 0.5 ? POLARITY_BLUE : POLARITY_ORANGE;
+
+        // Laser Gates appear after 150 points
+        if (game.score >= 150 && Math.random() < 0.25) {
+          game.hazards.push({
+            type: 'gate',
+            polarity,
+            x: CORE_X,
+            y: -20,
+            width: 240,
+            height: 14,
+            speed: baseSpeed * 0.92,
+            isIntro: false,
+            label: `Wave ${game.waveCount} Laser Gate`
+          });
+        } else {
+          game.hazards.push({
+            type: 'orb',
+            polarity,
+            x: CORE_X,
+            y: -24,
+            r: 17,
+            speed: baseSpeed,
+            isIntro: false,
+            label: `Wave ${game.waveCount} Polarity Orb`
+          });
+        }
+      }
+
+      function createParticles(x, y, color, count = 16) {
+        for (let i = 0; i < count; i++) {
+          const angle = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.35;
+          const speed = Math.random() * 150 + 55;
+          game.particles.push({
+            x,
+            y,
+            vx: Math.cos(angle) * speed,
+            vy: Math.sin(angle) * speed,
+            r: Math.random() * 3.5 + 1.5,
+            alpha: 1,
+            color
+          });
+        }
+      }
+
+      function updateTelemetryUI() {
+        metricFirstFlip.textContent = game.firstFlipTime !== null ? `${game.firstFlipTime.toFixed(2)}s` : '--';
+        metricIntroClear.textContent = `${game.introCleared} / 2`;
+        metricSessionTime.textContent = formatDuration(game.elapsedTime);
+        const acc = game.totalHits > 0 ? Math.round((game.totalAbsorbed / game.totalHits) * 100) : 100;
+        metricAccuracy.textContent = `${acc}%`;
+
+        if (game.introCleared === 2 && game.state === 'PLAYING') {
+          telemetryStatus.textContent = 'Goal Understood ✔';
+          telemetryStatus.className = 'text-xs font-mono text-emerald-400';
+        }
+      }
+
+      function update(dt) {
+        for (const s of bgStars) {
+          s.y += s.speed * dt;
+          if (s.y > canvas.height) {
+            s.y = 0;
+            s.x = Math.random() * canvas.width;
+          }
+        }
+
+        if (game.state !== 'PLAYING') return;
+
+        game.elapsedTime += dt;
+        game.coreScale += (1 - game.coreScale) * 10 * dt;
+
+        if (game.shakeTime > 0) game.shakeTime = Math.max(0, game.shakeTime - dt);
+        if (game.damageFlash > 0) game.damageFlash = Math.max(0, game.damageFlash - dt * 2.5);
+
+        // Spawn timer
+        game.spawnTimer -= dt;
+        if (game.spawnTimer <= 0) {
+          spawnHazard();
+          const minInterval = 0.56;
+          game.spawnInterval = Math.max(minInterval, 1.30 - (game.score / 1800) * 0.65);
+          game.spawnTimer = game.spawnInterval;
+        }
+
+        // Update Hazards
+        for (let i = game.hazards.length - 1; i >= 0; i--) {
+          const h = game.hazards[i];
+          h.y += h.speed * dt;
+
+          const hitDist = h.type === 'orb' ? (CORE_RADIUS + h.r - 4) : (CORE_RADIUS + h.height / 2);
+          if (Math.abs(h.y - CORE_Y) <= hitDist) {
+            game.totalHits++;
+            const isMatch = h.polarity === game.playerPolarity;
+            const col = h.polarity === POLARITY_BLUE ? '#00F0FF' : '#FF6B00';
+
+            if (isMatch) {
+              game.totalAbsorbed++;
+              game.streak++;
+              if (game.streak > game.maxStreak) game.maxStreak = game.streak;
+              game.multiplier = Math.min(4, 1 + Math.floor(game.streak / 4));
+              const pts = (h.type === 'gate' ? 15 : 10) * game.multiplier;
+              game.score += pts;
+              if (game.score > game.highScore) game.highScore = game.score;
+
+              if (h.isIntro) game.introCleared = Math.min(2, game.introCleared + 1);
+
+              // Shield recharge every 8 consecutive matches
+              if (game.streak % 8 === 0 && game.shields < 3) {
+                game.shields++;
+                game.floatingTexts.push({
+                  x: CORE_X,
+                  y: CORE_Y - 58,
+                  text: 'SHIELD RESTORED!',
+                  color: '#34D399',
+                  alpha: 1,
+                  vy: -45
+                });
+              }
+
+              game.coreScale = 1.35;
+              playSound('absorb', game.streak);
+              createParticles(h.x, h.y, col, 18);
+              game.shockwaves.push({
+                x: CORE_X,
+                y: CORE_Y,
+                r: CORE_RADIUS,
+                maxR: CORE_RADIUS + 46,
+                alpha: 0.9,
+                color: col
+              });
+              game.floatingTexts.push({
+                x: CORE_X + (Math.random() * 24 - 12),
+                y: CORE_Y - 38,
+                text: `+${pts}`,
+                color: col,
+                alpha: 1,
+                vy: -55
+              });
+
+              if (!game.freeplay && game.score >= GOAL_SCORE) {
+                game.state = 'WIN';
+                playSound('win');
+                ptFailure.value = 'Reached 1,500 PTS Overdrive Goal!';
+              }
+            } else {
+              // Mismatch Damage
+              game.shields--;
+              game.streak = 0;
+              game.multiplier = 1;
+              game.shakeTime = 0.18;
+              game.damageFlash = 0.75;
+              game.lastFailureReason = `${h.label} at ${game.score} PTS`;
+              ptFailure.value = game.lastFailureReason;
+
+              playSound('damage');
+              createParticles(CORE_X, CORE_Y, '#F43F5E', 24);
+              game.floatingTexts.push({
+                x: CORE_X,
+                y: CORE_Y - 42,
+                text: 'POLARITY MISMATCH!',
+                color: '#F43F5E',
+                alpha: 1,
+                vy: -50
+              });
+
+              if (game.shields <= 0) {
+                game.state = 'GAMEOVER';
+                telemetryStatus.textContent = 'Run Ended (Breach)';
+                telemetryStatus.className = 'text-xs font-mono text-rose-400';
+              }
+            }
+
+            updateTelemetryUI();
+            game.hazards.splice(i, 1);
+            continue;
+          }
+
+          if (h.y > canvas.height + 40) {
+            game.hazards.splice(i, 1);
+          }
+        }
+
+        // Update Particles
+        for (let i = game.particles.length - 1; i >= 0; i--) {
+          const p = game.particles[i];
+          p.x += p.vx * dt;
+          p.y += p.vy * dt;
+          p.alpha -= dt * 2.2;
+          if (p.alpha <= 0) game.particles.splice(i, 1);
+        }
+
+        // Update Shockwaves
+        for (let i = game.shockwaves.length - 1; i >= 0; i--) {
+          const sw = game.shockwaves[i];
+          sw.r += (sw.maxR - sw.r) * 10 * dt;
+          sw.alpha -= dt * 2.4;
+          if (sw.alpha <= 0) game.shockwaves.splice(i, 1);
+        }
+
+        // Update Floating Texts
+        for (let i = game.floatingTexts.length - 1; i >= 0; i--) {
+          const ft = game.floatingTexts[i];
+          ft.y += ft.vy * dt;
+          ft.alpha -= dt * 1.4;
+          if (ft.alpha <= 0) game.floatingTexts.splice(i, 1);
+        }
+
+        updateTelemetryUI();
+      }
+
+      // Helper: Draw Hexagon for Negative (-) Polarity
+      function drawHexagon(ctx, x, y, r) {
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const angle = (Math.PI / 3) * i - Math.PI / 6;
+          const hx = x + r * Math.cos(angle);
+          const hy = y + r * Math.sin(angle);
+          if (i === 0) ctx.moveTo(hx, hy);
+          else ctx.lineTo(hx, hy);
+        }
+        ctx.closePath();
+      }
+
+      function render() {
+        ctx.save();
+
+        // Screen Shake
+        if (game.shakeTime > 0) {
+          const dx = (Math.random() - 0.5) * 14;
+          const dy = (Math.random() - 0.5) * 14;
+          ctx.translate(dx, dy);
+        }
+
+        // Clear Background
+        ctx.fillStyle = '#090D16';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Background Stars
+        for (const s of bgStars) {
+          ctx.fillStyle = `rgba(148, 163, 184, ${s.alpha})`;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Center Magnetic Track Sightline
+        ctx.strokeStyle = 'rgba(51, 65, 85, 0.45)';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 6]);
+        ctx.beginPath();
+        ctx.moveTo(CORE_X, 68);
+        ctx.lineTo(CORE_X, CORE_Y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw Shockwaves
+        for (const sw of game.shockwaves) {
+          ctx.strokeStyle = sw.color;
+          ctx.globalAlpha = Math.max(0, sw.alpha);
+          ctx.lineWidth = 2.5;
+          ctx.beginPath();
+          ctx.arc(sw.x, sw.y, sw.r, 0, Math.PI * 2);
+          ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+
+        // Draw Hazards
+        for (const h of game.hazards) {
+          const isBlue = h.polarity === POLARITY_BLUE;
+          const col = isBlue ? '#00F0FF' : '#FF6B00';
+          const sym = isBlue ? '+' : '−';
+
+          ctx.save();
+          ctx.shadowColor = col;
+          ctx.shadowBlur = 12;
+
+          if (h.type === 'orb') {
+            ctx.fillStyle = isBlue ? 'rgba(0, 240, 255, 0.22)' : 'rgba(255, 107, 0, 0.22)';
+            ctx.strokeStyle = col;
+            ctx.lineWidth = 2.5;
+
+            if (isBlue) {
+              ctx.beginPath();
+              ctx.arc(h.x, h.y, h.r, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.stroke();
+            } else {
+              drawHexagon(ctx, h.x, h.y, h.r + 2);
+              ctx.fill();
+              ctx.stroke();
+            }
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 16px "Fira Code", monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(sym, h.x, h.y + 1);
+
+            // Visual-only Ghost Ring during Onboarding Wave 2
+            if (h.needsFlipHint && game.playerPolarity !== h.polarity) {
+              const pulseR = h.r + 8 + Math.sin(game.elapsedTime * 10) * 4;
+              ctx.strokeStyle = '#FBBF24';
+              ctx.lineWidth = 1.5;
+              ctx.beginPath();
+              ctx.arc(h.x, h.y, pulseR, 0, Math.PI * 2);
+              ctx.stroke();
+
+              if (!game.silentOnboarding) {
+                ctx.fillStyle = '#FBBF24';
+                ctx.font = 'bold 11px "Fira Code", monospace';
+                ctx.fillText('PRESS SPACE / TAP TO MATCH!', h.x, h.y - 32);
+              }
+            }
+          } else {
+            // Laser Gate
+            const halfW = h.width / 2;
+            ctx.fillStyle = isBlue ? 'rgba(0, 240, 255, 0.25)' : 'rgba(255, 107, 0, 0.25)';
+            ctx.strokeStyle = col;
+            ctx.lineWidth = 2;
+            ctx.fillRect(h.x - halfW, h.y - h.height / 2, h.width, h.height);
+            ctx.strokeRect(h.x - halfW, h.y - h.height / 2, h.width, h.height);
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = 'bold 11px "Fira Code", monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(`${sym} LASER GATE ${sym}`, h.x, h.y);
+          }
+          ctx.restore();
+        }
+
+        // Draw Player Shield Segments (3 Arcs)
+        for (let i = 0; i < 3; i++) {
+          const startAngle = (i * (Math.PI * 2)) / 3 - Math.PI / 2 + 0.14;
+          const endAngle = ((i + 1) * (Math.PI * 2)) / 3 - Math.PI / 2 - 0.14;
+          ctx.beginPath();
+          ctx.arc(CORE_X, CORE_Y, CORE_RADIUS + 14, startAngle, endAngle);
+          if (i < game.shields) {
+            ctx.strokeStyle = game.playerPolarity === POLARITY_BLUE ? '#38BDF8' : '#FB923C';
+            ctx.lineWidth = 3.5;
+          } else {
+            ctx.strokeStyle = 'rgba(51, 65, 85, 0.4)';
+            ctx.lineWidth = 2;
+          }
+          ctx.stroke();
+        }
+
+        // Draw Player Core
+        const pBlue = game.playerPolarity === POLARITY_BLUE;
+        const pCol = pBlue ? '#00F0FF' : '#FF6B00';
+        const scaledR = CORE_RADIUS * game.coreScale;
+
+        ctx.save();
+        ctx.shadowColor = pCol;
+        ctx.shadowBlur = 18;
+        ctx.fillStyle = pBlue ? 'rgba(0, 240, 255, 0.28)' : 'rgba(255, 107, 0, 0.28)';
+        ctx.strokeStyle = pCol;
+        ctx.lineWidth = 3;
+
+        if (pBlue) {
+          ctx.beginPath();
+          ctx.arc(CORE_X, CORE_Y, scaledR, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.stroke();
+        } else {
+          drawHexagon(ctx, CORE_X, CORE_Y, scaledR + 2);
+          ctx.fill();
+          ctx.stroke();
+        }
+
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 20px "Fira Code", monospace';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(pBlue ? '+' : '−', CORE_X, CORE_Y + 1);
+        ctx.restore();
+
+        // Draw Particles
+        for (const p of game.particles) {
+          ctx.fillStyle = p.color;
+          ctx.globalAlpha = Math.max(0, p.alpha);
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+
+        // Draw Floating Texts
+        for (const ft of game.floatingTexts) {
+          ctx.fillStyle = ft.color;
+          ctx.globalAlpha = Math.max(0, ft.alpha);
+          ctx.font = 'bold 13px "Fira Code", monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(ft.text, ft.x, ft.y);
+        }
+        ctx.globalAlpha = 1;
+
+        // Top HUD Bar
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.88)';
+        ctx.fillRect(0, 0, canvas.width, 58);
+        ctx.strokeStyle = '#1E293B';
+        ctx.beginPath();
+        ctx.moveTo(0, 58);
+        ctx.lineTo(canvas.width, 58);
+        ctx.stroke();
+
+        // Score & Target Progress
+        ctx.fillStyle = '#94A3B8';
+        ctx.font = '10px "Fira Code", monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText('SCORE / GOAL', 16, 20);
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 15px "Fira Code", monospace';
+        ctx.fillText(`${game.score} / ${GOAL_SCORE}`, 16, 40);
+
+        // Progress Bar toward 1,500 PTS
+        const progW = 130;
+        const ratio = Math.min(1, game.score / GOAL_SCORE);
+        ctx.fillStyle = '#1E293B';
+        ctx.fillRect(150, 26, progW, 8);
+        ctx.fillStyle = '#00F0FF';
+        ctx.fillRect(150, 26, progW * ratio, 8);
+
+        // Multiplier & Timer
+        ctx.textAlign = 'right';
+        ctx.fillStyle = '#94A3B8';
+        ctx.font = '10px "Fira Code", monospace';
+        ctx.fillText(`TIME ${formatDuration(game.elapsedTime)}`, canvas.width - 16, 20);
+        ctx.fillStyle = game.multiplier > 1 ? '#34D399' : '#E2E8F0';
+        ctx.font = 'bold 14px "Fira Code", monospace';
+        ctx.fillText(`${game.multiplier}x (${game.streak} STREAK)`, canvas.width - 16, 40);
+
+        // Damage Vignette
+        if (game.damageFlash > 0) {
+          ctx.strokeStyle = `rgba(244, 63, 94, ${game.damageFlash})`;
+          ctx.lineWidth = 10;
+          ctx.strokeRect(5, 5, canvas.width - 10, canvas.height - 10);
+        }
+
+        // OVERLAYS: START, PAUSED, WIN, GAMEOVER
+        if (game.state !== 'PLAYING') {
+          ctx.fillStyle = 'rgba(9, 13, 22, 0.84)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          ctx.textAlign = 'center';
+          if (game.state === 'START') {
+            ctx.fillStyle = '#00F0FF';
+            ctx.font = 'bold 12px "Fira Code", monospace';
+            ctx.fillText('GAME DESIGN & PLAYTEST PACK PROTOTYPE', canvas.width / 2, 205);
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '800 30px "Syne", sans-serif';
+            ctx.fillText('POLARITY PULSE', canvas.width / 2, 245);
+
+            ctx.fillStyle = '#CBD5E1';
+            ctx.font = '13px "Plus Jakarta Sans", sans-serif';
+            ctx.fillText('Match your core (+ Circle / − Hex) to incoming energy.', canvas.width / 2, 285);
+            ctx.fillText('Goal: Reach 1,500 PTS to stabilize the reactor.', canvas.width / 2, 308);
+
+            ctx.fillStyle = '#00F0FF';
+            ctx.font = 'bold 14px "Fira Code", monospace';
+            ctx.fillText('[ PRESS SPACE OR TAP TO LAUNCH ]', canvas.width / 2, 365);
+          } else if (game.state === 'PAUSED') {
+            ctx.fillStyle = '#FBBF24';
+            ctx.font = '800 28px "Syne", sans-serif';
+            ctx.fillText('SIMULATION PAUSED', canvas.width / 2, 250);
+
+            ctx.fillStyle = '#CBD5E1';
+            ctx.font = '13px "Fira Code", monospace';
+            ctx.fillText(`Current Score: ${game.score} / ${GOAL_SCORE}`, canvas.width / 2, 290);
+            ctx.fillText('[ PRESS P, SPACE, OR TAP TO RESUME ]', canvas.width / 2, 335);
+          } else if (game.state === 'WIN') {
+            ctx.fillStyle = '#34D399';
+            ctx.font = '800 26px "Syne", sans-serif';
+            ctx.fillText('OVERDRIVE STABILIZED!', canvas.width / 2, 230);
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '14px "Fira Code", monospace';
+            ctx.fillText(`1,500 PTS GOAL REACHED IN ${formatDuration(game.elapsedTime)}`, canvas.width / 2, 270);
+            ctx.fillText(`Max Streak: ${game.maxStreak}  |  Accuracy: ${metricAccuracy.textContent}`, canvas.width / 2, 298);
+
+            ctx.fillStyle = '#00F0FF';
+            ctx.font = 'bold 13px "Fira Code", monospace';
+            ctx.fillText('[ SPACE / TAP FOR ENDLESS FREEPLAY  •  R TO RESTART ]', canvas.width / 2, 355);
+          } else if (game.state === 'GAMEOVER') {
+            ctx.fillStyle = '#F43F5E';
+            ctx.font = '800 26px "Syne", sans-serif';
+            ctx.fillText('CONTAINMENT BREACH', canvas.width / 2, 230);
+
+            ctx.fillStyle = '#FFFFFF';
+            ctx.font = '14px "Fira Code", monospace';
+            ctx.fillText(`Final Score: ${game.score} / ${GOAL_SCORE} (${formatDuration(game.elapsedTime)})`, canvas.width / 2, 270);
+            ctx.fillStyle = '#94A3B8';
+            ctx.font = '12px "Fira Code", monospace';
+            ctx.fillText(`Failure Point: ${game.lastFailureReason}`, canvas.width / 2, 298);
+
+            ctx.fillStyle = '#00F0FF';
+            ctx.font = 'bold 14px "Fira Code", monospace';
+            ctx.fillText('[ PRESS SPACE, R, OR TAP TO RETRY ]', canvas.width / 2, 350);
+          }
+        }
+
+        ctx.restore();
+      }
+
+      // Main Loop
+      let lastTime = performance.now();
+      function loop(now) {
+        const dt = Math.min(0.1, (now - lastTime) / 1000);
+        lastTime = now;
+        update(dt);
+        render();
+        requestAnimationFrame(loop);
+      }
+      requestAnimationFrame(loop);
+
+      // Controls: Keyboard & Touch
+      window.addEventListener('keydown', (e) => {
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+
+        if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Enter') {
+          e.preventDefault();
+          flipPolarity();
+        } else if (e.code === 'KeyP' || e.code === 'Escape') {
+          e.preventDefault();
+          togglePause();
+        } else if (e.code === 'KeyR') {
+          e.preventDefault();
+          initAudio();
+          resetGame();
+        } else if (e.code === 'KeyM') {
+          e.preventDefault();
+          toggleSoundBtn.click();
+        }
+      });
+
+      canvas.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        flipPolarity();
+      });
+
+      mobileFlipBtn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        flipPolarity();
+      });
+
+      pauseBtn.addEventListener('click', togglePause);
+      restartBtn.addEventListener('click', () => {
+        initAudio();
+        resetGame();
+      });
+
+      toggleSoundBtn.addEventListener('click', () => {
+        initAudio();
+        soundEnabled = !soundEnabled;
+        toggleSoundBtn.textContent = soundEnabled ? '🔊 SFX: ON' : '🔇 SFX: OFF';
+      });
+
+      toggleHintModeBtn.addEventListener('click', () => {
+        game.silentOnboarding = !game.silentOnboarding;
+        hintModeText.textContent = game.silentOnboarding ? 'Zero-Text (Silent)' : 'HUD Text Hints';
+        onboardingModeBadge.textContent = game.silentOnboarding ? 'Silent Onboarding' : 'Assisted Onboarding';
+      });
+
+      // Playtest Form Submission
+      let sessionCounter = 3;
+      playtestForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const goal = document.getElementById('ptGoal').value;
+        const firstTime = document.getElementById('ptFirstTime').value;
+        const failure = document.getElementById('ptFailure').value;
+        const access = document.getElementById('ptAccess').value;
+        const delight = document.getElementById('ptDelight').value;
+        const change = document.getElementById('ptChange').value;
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="py-3.5 px-4 font-mono text-cyanPolar">PT-0${sessionCounter++} (Live Run)</td>
+          <td class="py-3.5 px-4"><span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 font-mono">${goal}</span></td>
+          <td class="py-3.5 px-4 font-mono">${firstTime}</td>
+          <td class="py-3.5 px-4">${failure}</td>
+          <td class="py-3.5 px-4">${access}</td>
+          <td class="py-3.5 px-4">${delight}</td>
+          <td class="py-3.5 px-4">${change}</td>
+        `;
+        playtestTableBody.appendChild(tr);
+        showToast('Playtest session logged to sheet!');
+      });
+
+      // Copy Summary Markdown
+      function showToast(msg) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toastMsg').textContent = msg;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 2600);
+      }
+
+      document.getElementById('copyReadmeBtn').addEventListener('click', () => {
+        const md = `# Polarity Pulse — Game Design & Playtest Pack
+
+## Prototype Constraints
+- **One Core Action:** Single-button magnetic polarity flip (+ Circle / - Hexagon).
+- **One Clear Goal:** Reach 1,500 PTS to stabilize the reactor core.
+- **Session Length:** 3–5 minutes per full run.
+- **Controls:** Keyboard (SPACE / W / Up / P / R) and Touch (Tap Canvas or Dedicated Flip Button).
+- **Assets:** 100% Original procedural HTML5 Canvas geometry & WebAudio API synthesizer.
+
+## One-Page GDD
+- **Player Fantasy & Audience:** Subatomic containment operator; designed for casual arcade & reflex players.
+- **Core Loop:** Flip Polarity (Action) -> Shape Morph + Synth Chime (Feedback) -> +Score/Shield Recharge or Shield Break (Consequence) -> Read Next Wave Polarity (Next Decision).
+- **States:** Silent Onboarding (First 2 deterministic waves), Win (1,500 PTS), Loss (0 Shields), Pause (P/ESC), Restart (R).
+- **Scope Cuts:** No 2D spatial movement, no multi-currency shops, no external image/audio dependencies.`;
+        navigator.clipboard.writeText(md).then(() => showToast('Markdown summary copied!'));
+      });
+    })();
+  </script>
+</body>
+</html>
