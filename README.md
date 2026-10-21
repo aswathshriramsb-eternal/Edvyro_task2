@@ -118,3 +118,5 @@ Because the entire project is built using a single-file architecture with zero b
    ```bash
    npx serve .
    ```
+   If u cant run it locally use this vercel link where the game is live :
+   https://task-2-game-devolopment.vercel.app/
